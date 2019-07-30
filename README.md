@@ -1,4 +1,4 @@
-# CV_Proyecto1
+# CV_Proyecto2
 
 Installing instructions:
 

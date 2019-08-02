@@ -128,7 +128,7 @@ def CalFromCam():
 				cv2.imshow('Proyecto2: Calibracion de camara capturando de camara. (Chessboard)', img)
 				cv2.waitKey(500)
 			else:
-				print("Chessboard corners not found!\n")
+				print("Chessboard corners not found! Please try again.\n")
 
 	cv2.destroyAllWindows()
 

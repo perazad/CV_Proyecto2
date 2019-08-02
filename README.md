@@ -17,6 +17,7 @@ Installing problems:
 Install the following libraries using:
 
 sudo pip3 install keyboard
+
 sudo pip3 install pynput
 
 Execution Instructions:
@@ -32,9 +33,13 @@ You can modify parameters in param.txt file i.e chessboard's rows, columns, imag
 chessboard:
 
 rows - captured rows on chessboard used.
+
 columns - captured columns on chessboard used.
+
 imgFolder - folder where images are stored for or during camera calibration.
+
 imgBaseNm - images base name to be used i.e. photoX, imageX, etc
+
 imgBaseIdx - images's index number X i.e 0.
 
 

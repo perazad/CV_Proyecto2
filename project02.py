@@ -57,6 +57,9 @@ def on_press(key):
 	if k == '2': # stored mode
 		state = 2
 		return True
+	if k == '3': # project only mode
+		state = 3
+		return True
 
 def draw(img, corners, imgpts):
     corner = tuple(corners[0].ravel())
@@ -69,6 +72,7 @@ def CalFromCam():
 
 	global rows
 	global columns
+	global params
 
 	idxCam = 0
 
@@ -297,6 +301,67 @@ def CalFromDisc():
 
 	cv2.destroyAllWindows()
 
+def ProjectOnly():
+
+	global rows
+	global columns
+	global params
+
+	# termination criteria
+	criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+	
+	# prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
+	objp = np.zeros((columns*rows,3), np.float32)
+	objp[:,:2] = np.mgrid[0:rows,0:columns].T.reshape(-1,2)
+
+	# Arrays to store object points and image points from all the images.
+	objpoints = [] # 3d point in real world space
+	imgpoints = [] # 2d points in image plane.
+
+	# Load previously saved data
+	with np.load('camera.npz') as X:
+		mtx, dist, rvecs, tvecs = [X[i] for i in ('mtx','dist','rvecs','tvecs')]
+
+	axis = np.float32([[3,0,0], [0,3,0], [0,0,-3]]).reshape(-1,3)
+
+	print("Press s in camera window for saving image.\n")
+
+	cap = cv2.VideoCapture(0)
+
+	print("Press d in camera window when you are done projecting.\n")
+
+	while(True):
+
+		# Capture frame-by-frame
+		ret, frame = cap.read()
+
+		img = frame
+		gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+		ret, corners = cv2.findChessboardCorners(gray, (rows, columns), cv2.CALIB_CB_FILTER_QUADS)
+
+		if ret == True:
+
+			corners2 = cv2.cornerSubPix(gray, corners, (11,11), (-1,-1), criteria)
+
+			# Find the rotation and translation vectors.
+			ret,rvecs, tvecs = cv2.solvePnP(objp, corners2, mtx, dist)
+
+			# project 3D points to image plane
+			imgpts, jac = cv2.projectPoints(axis, rvecs, tvecs, mtx, dist)
+			img = draw(img, corners2, imgpts)
+
+		key = cv2.waitKey(20)
+
+		if key & 0xFF == ord('d'):
+			break
+
+		cv2.imshow('Proyecto2: Calibracion de camara en modo almacenamiento. (Proyeccion)', img)
+
+	# When everything done, release the capture
+	cap.release()
+	cv2.destroyAllWindows()
+
 def main():
 
 	global state
@@ -311,6 +376,7 @@ def main():
 			print("Select a calibration mode.\n")
 			print("Press 1 to calibrate and project using camera.\n")
 			print("Press 2 to calibrate and project using stored images (.jpg) in Images folder.\n")
+			print("Press 3 to project only using camera and your chessboard.\n")
 			print("Press ESC for exit.\n")
 
 			state = 5		#idle
@@ -325,6 +391,12 @@ def main():
 			print("Stored mode active! Selecting all .jpg files in folder Images.\n")
 			CalFromDisc()			
 			state = 5
+
+		if state == 3:
+			print("Project only mode active!\n")
+			ProjectOnly()			
+			state = 5
+			
 
 if __name__ == "__main__":
     main()
